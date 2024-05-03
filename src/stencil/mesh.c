@@ -49,15 +49,19 @@ void mesh_print(mesh_t const* self, char const* name) {
         self->dim_z
     );
 
-    usz const ghost_size = 2 * STENCIL_ORDER;
-    usz count = (self->dim_x + ghost_size) * (self->dim_y + ghost_size) * (self->dim_z + ghost_size);
-    for (usz i = 0; i < count; ++i) {
-        printf(
-                "%s%6.3lf%s ",
-                CELL_KIND_CORE == self->cells[i].kind ? "\x1b[1m" : "",
-                self->cells[i].value,
-                "\x1b[0m"
+    for (usz i = 0; i < self->dim_x; ++i) {
+        for (usz j = 0; j < self->dim_y; ++j) {
+            for (usz k = 0; k < self->dim_z; ++k) {
+                printf(
+                    "%s%6.3lf%s ",
+                    CELL_KIND_CORE == mesh_set_cell_kind(self, i, j, k) ? "\x1b[1m" : "",
+                    idx_const(self, i, j, k),
+                    "\x1b[0m"
                 );
+            }
+            puts("");
+        }
+        puts("");
     }
 }
 
