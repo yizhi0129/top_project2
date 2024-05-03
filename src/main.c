@@ -49,20 +49,22 @@ static void save_results(
     MPI_Allreduce(&loc_ns_per_elem, &glob_ns_per_elem, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
     if (mid_x_is_in && mid_y_is_in && mid_z_is_in) {
-        fprintf(
-            ofp,
-            "%+18.15lf %12.9lf %12.3lf %zu %zu %zu\n",
-            mesh->cells[mid_x - comm_handler->coord_x + STENCIL_ORDER]
-                       [mid_y - comm_handler->coord_y + STENCIL_ORDER]
-                       [mid_z - comm_handler->coord_z + STENCIL_ORDER]
-                           .value,
-            glob_elapsed_s / (f64)comm_size,
-            glob_ns_per_elem / (f64)comm_size,
-            cfg->dim_x,
-            cfg->dim_y,
-            cfg->dim_z
-        );
+    f64 mid_value = *idx(&mesh,
+                         mid_x - comm_handler->coord_x + STENCIL_ORDER,
+                         mid_y - comm_handler->coord_y + STENCIL_ORDER,
+                         mid_z - comm_handler->coord_z + STENCIL_ORDER);
+    fprintf(
+        ofp,
+        "%+18.15lf %12.9lf %12.3lf %zu %zu %zu\n",
+        mid_value,
+        glob_elapsed_s / (f64)comm_size,
+        glob_ns_per_elem / (f64)comm_size,
+        cfg->dim_x,
+        cfg->dim_y,
+        cfg->dim_z
+    );
     }
+
 }
 
 i32 main(i32 argc, char* argv[argc + 1]) {
