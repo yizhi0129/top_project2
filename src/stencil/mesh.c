@@ -49,21 +49,26 @@ void mesh_print(mesh_t const* self, char const* name) {
         self->dim_z
     );
 
-    for (usz i = 0; i < self->dim_x; ++i) {
-        for (usz j = 0; j < self->dim_y; ++j) {
-            for (usz k = 0; k < self->dim_z; ++k) {
-                printf(
-                    "%s%6.3lf%s ",
-                    CELL_KIND_CORE == mesh_set_cell_kind(self, i, j, k) ? "\x1b[1m" : "",
-                    idx_const(self, i, j, k),
-                    "\x1b[0m"
-                );
-            }
+    usz ghost_size = 2 * STENCIL_ORDER;
+    for (usz index = 0; index < (self->dim_x - ghost_size) * (self->dim_y - ghost_size) * (self->dim_z - ghost_size); ++index) {
+        usz i = (index / ((self->dim_y - ghost_size) * (self->dim_z - ghost_size))) + STENCIL_ORDER;
+        usz j = ((index / (self->dim_z - ghost_size)) % (self->dim_y - ghost_size)) + STENCIL_ORDER;
+        usz k = (index % (self->dim_z - ghost_size)) + ghost_size;
+
+        printf(
+            "%s%6.3lf%s ",
+            CELL_KIND_CORE == mesh_set_cell_kind(self, i, j, k) ? "\x1b[1m" : "",
+            idx_const(self, i, j, k),
+            "\x1b[0m"
+        );
+
+        if ((index + 1) % (self->dim_z - 2 * ghost_size) == 0) {
             puts("");
         }
-        puts("");
     }
+    puts("");
 }
+
 
 cell_kind_t mesh_set_cell_kind(mesh_t const* self, usz i, usz j, usz k) {
     if ((i >= STENCIL_ORDER && i < self->dim_x - STENCIL_ORDER) &&
@@ -81,15 +86,18 @@ void mesh_copy_core(mesh_t* dst, mesh_t const* src) {
     assert(dst->dim_y == src->dim_y);
     assert(dst->dim_z == src->dim_z);
 
-    for (usz k = STENCIL_ORDER; k < dst->dim_z - STENCIL_ORDER; ++k) {
-        for (usz j = STENCIL_ORDER; j < dst->dim_y - STENCIL_ORDER; ++j) {
-            for (usz i = STENCIL_ORDER; i < dst->dim_x - STENCIL_ORDER; ++i) {
-                f64 value = idx_core_const(src, i, j, k);
-                *idx_core(dst, i, j, k) = value;
-            }
-        }
+    usz ghost_size = 2 * STENCIL_ORDER;
+    usz cell_count = (dst->dim_x - ghost_size) * (dst->dim_y - ghost_size) * (dst->dim_z - ghost_size);
+    for (usz index = 0; index < cell_count; ++index) {
+        usz dst_i = (index / ((dst->dim_y - ghost_size) * (dst->dim_z - ghost_size))) + STENCIL_ORDER;
+        usz dst_j = ((index / (dst->dim_z - ghost_size)) % (dst->dim_y - ghost_size)) + STENCIL_ORDER;
+        usz dst_k = (index % (dst->dim_z - ghost_size)) + ghost_size;
+
+        f64 value = idx_core_const(src, dst_i, dst_j, dst_k);
+        *idx_core(dst, dst_i, dst_j, dst_k) = value;
     }
 }
+
 
 
 /// Returns a pointer to the indexed element (includes surrounding ghost cells).
