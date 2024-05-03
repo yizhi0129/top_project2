@@ -1,0 +1,10 @@
+*.dylib
+*.so
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+my_executable
+.DS_Store
+*.iCloud
+perf.da*

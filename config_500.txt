@@ -1,0 +1,4 @@
+dim_x=500
+dim_y=500
+dim_z=500
+niter=10
