@@ -63,6 +63,7 @@ static void save_results(
             cfg->dim_z
         );
     }
+
 }
 
 i32 main(i32 argc, char* argv[argc + 1]) {
