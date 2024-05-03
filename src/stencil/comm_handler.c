@@ -8,11 +8,11 @@
 #define MAXLEN 8UL
 
 static u32 gcd(u32 a, u32 b) {
-    u32 c;
+    //u32 c;
     while (b != 0) {
-        c = a % b;
+        //c = a % b;
         a = b;
-        b = c;
+        //b = c;
     }
     return a;
 }
@@ -66,15 +66,15 @@ comm_handler_t comm_handler_new(u32 rank, u32 comm_size, usz dim_x, usz dim_y, u
         .coord_x = coord_x,
         .coord_y = coord_y,
         .coord_z = coord_z,
-        .loc_dim_x = loc_dim_x,
-        .loc_dim_y = loc_dim_y,
-        .loc_dim_z = loc_dim_z,
         .id_left = id_left,
         .id_right = id_right,
         .id_top = id_top,
         .id_bottom = id_bottom,
         .id_back = id_back,
-        .id_front = id_front,
+        .id_front = id_front, // 32 bits each above
+        .loc_dim_x = loc_dim_x, // usz
+        .loc_dim_y = loc_dim_y,
+        .loc_dim_z = loc_dim_z,
     };
 }
 
