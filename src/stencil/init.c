@@ -11,52 +11,51 @@ static f64 compute_core_pressure(usz i, usz j, usz k) {
 }
 
 static void setup_mesh_cell_values(mesh_t* mesh, comm_handler_t const* comm_handler) {
-    usz ghost_size = 2 * STENCIL_ORDER;
-    for (usz index = 0; index < (mesh->dim_x - ghost_size) * (mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size); ++index) {
-        usz i = (index / ((mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size))) + STENCIL_ORDER;
-        usz j = ((index / (mesh->dim_z - ghost_size)) % (mesh->dim_y - ghost_size)) + STENCIL_ORDER;
-        usz k = (index % (mesh->dim_z - ghost_size)) + STENCIL_ORDER;
+    for (usz i = 0; i < mesh->dim_x; ++i) {
+        for (usz j = 0; j < mesh->dim_y; ++j) {
+            for (usz k = 0; k < mesh->dim_z; ++k) {
+                switch (mesh->kind) {
+                    case MESH_KIND_CONSTANT:
+                        usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
+                        mesh->cells[ind].value = compute_core_pressure(
+                            comm_handler->coord_x + i,
+                            comm_handler->coord_y + j,
+                            comm_handler->coord_z + k
+                        );
+                        break;
+                    case MESH_KIND_INPUT:
+                        if ((i >= STENCIL_ORDER && (i < mesh->dim_x - STENCIL_ORDER)) &&
+                            (j >= STENCIL_ORDER && (j < mesh->dim_y - STENCIL_ORDER)) &&
+                            (k >= STENCIL_ORDER && (k < mesh->dim_z - STENCIL_ORDER)))
+                        {
+                            mesh->cells[ind].value = 1.0;
 
-        usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
-        switch (mesh->kind) {
-            case MESH_KIND_CONSTANT:
-                mesh->cells[ind].value = compute_core_pressure(
-                    comm_handler->coord_x + i - STENCIL_ORDER,
-                    comm_handler->coord_y + j - STENCIL_ORDER,
-                    comm_handler->coord_z + k - STENCIL_ORDER
-                );
-                break;
-            case MESH_KIND_INPUT:
-                if ((i >= STENCIL_ORDER && (i < mesh->dim_x - STENCIL_ORDER)) &&
-                    (j >= STENCIL_ORDER && (j < mesh->dim_y - STENCIL_ORDER)) &&
-                    (k >= STENCIL_ORDER && (k < mesh->dim_z - STENCIL_ORDER)))
-                {
-                    mesh->cells[ind].value = 1.0;
-                } else {
-                    mesh->cells[ind].value = 0.0;
+                        } else {
+                            mesh->cells[ind].value = 0.0;
+                            
+                        }
+                        break;
+                    case MESH_KIND_OUTPUT:
+                        mesh->cells[ind].value = 0.0;
+                        break;
+                    default:
+                        __builtin_unreachable();
                 }
-                break;
-            case MESH_KIND_OUTPUT:
-                mesh->cells[ind].value = 0.0;
-                break;
-            default:
-                __builtin_unreachable();
+            }
         }
     }
 }
 
 static void setup_mesh_cell_kinds(mesh_t* mesh) {
-    usz ghost_size = 2 * STENCIL_ORDER;
-    for (usz index = 0; index < (mesh->dim_x - ghost_size) * (mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size); ++index) {
-        usz i = (index / ((mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size))) + STENCIL_ORDER;
-        usz j = ((index / (mesh->dim_z - ghost_size)) % (mesh->dim_y - ghost_size)) + STENCIL_ORDER;
-        usz k = (index % (mesh->dim_z - ghost_size)) + STENCIL_ORDER;
-
-        usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
-        mesh->cells[ind].kind = mesh_set_cell_kind(mesh, i, j, k);
+    for (usz i = 0; i < mesh->dim_x; ++i) {
+        for (usz j = 0; j < mesh->dim_y; ++j) {
+            for (usz k = 0; k < mesh->dim_z; ++k) {
+                usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
+                mesh->cells[ind].kind = mesh_set_cell_kind(mesh, i, j, k);
+            }
+        }
     }
 }
-
 
 void init_meshes(mesh_t* A, mesh_t* B, mesh_t* C, comm_handler_t const* comm_handler) {
     assert(
