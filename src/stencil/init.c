@@ -16,7 +16,8 @@ static void setup_mesh_cell_values(mesh_t* mesh, comm_handler_t const* comm_hand
             for (usz k = 0; k < mesh->dim_z; ++k) {
                 switch (mesh->kind) {
                     case MESH_KIND_CONSTANT:
-                        mesh->cells[i][j][k].value = compute_core_pressure(
+                        usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
+                        mesh->cells[ind].value = compute_core_pressure(
                             comm_handler->coord_x + i,
                             comm_handler->coord_y + j,
                             comm_handler->coord_z + k
@@ -27,13 +28,15 @@ static void setup_mesh_cell_values(mesh_t* mesh, comm_handler_t const* comm_hand
                             (j >= STENCIL_ORDER && (j < mesh->dim_y - STENCIL_ORDER)) &&
                             (k >= STENCIL_ORDER && (k < mesh->dim_z - STENCIL_ORDER)))
                         {
-                            mesh->cells[i][j][k].value = 1.0;
+                            mesh->cells[ind].value = 1.0;
+
                         } else {
-                            mesh->cells[i][j][k].value = 0.0;
+                            mesh->cells[ind].value = 0.0;
+                            
                         }
                         break;
                     case MESH_KIND_OUTPUT:
-                        mesh->cells[i][j][k].value = 0.0;
+                        mesh->cells[ind].value = 0.0;
                         break;
                     default:
                         __builtin_unreachable();
@@ -47,7 +50,8 @@ static void setup_mesh_cell_kinds(mesh_t* mesh) {
     for (usz i = 0; i < mesh->dim_x; ++i) {
         for (usz j = 0; j < mesh->dim_y; ++j) {
             for (usz k = 0; k < mesh->dim_z; ++k) {
-                mesh->cells[i][j][k].kind = mesh_set_cell_kind(mesh, i, j, k);
+                usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
+                mesh->cells[ind].kind = mesh_set_cell_kind(mesh, i, j, k);
             }
         }
     }
