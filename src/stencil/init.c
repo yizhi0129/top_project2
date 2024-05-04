@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <math.h>
 
+#include <omp.h>
+
 static f64 compute_core_pressure(usz i, usz j, usz k) {
     return sin((f64)k * cos((f64)i + 0.311) * cos((f64)j + 0.817) + 0.613);
 }
@@ -13,6 +15,7 @@ static f64 compute_core_pressure(usz i, usz j, usz k) {
 //single loop: may be more efficient but more indices to compute
 static void setup_mesh_cell_values(mesh_t* mesh, comm_handler_t const* comm_handler) {
     usz ghost_size = 2 * STENCIL_ORDER;
+    #pragma omp parallel for
     for (usz index = 0; index < (mesh->dim_x - ghost_size) * (mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size); ++index) {
         usz i = (index / ((mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size))) + STENCIL_ORDER;
         usz j = ((index / (mesh->dim_z - ghost_size)) % (mesh->dim_y - ghost_size)) + STENCIL_ORDER;
@@ -48,6 +51,7 @@ static void setup_mesh_cell_values(mesh_t* mesh, comm_handler_t const* comm_hand
 
 static void setup_mesh_cell_kinds(mesh_t* mesh) {
     usz ghost_size = 2 * STENCIL_ORDER;
+    #pragma omp parallel for
     for (usz index = 0; index < (mesh->dim_x - ghost_size) * (mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size); ++index) {
         usz i = (index / ((mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size))) + STENCIL_ORDER;
         usz j = ((index / (mesh->dim_z - ghost_size)) % (mesh->dim_y - ghost_size)) + STENCIL_ORDER;

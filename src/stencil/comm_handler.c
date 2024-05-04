@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <mpi.h>
+#include <omp.h>
 
 #define MAXLEN 8UL
 #define STENCIL_ORDER 2  // Adjust this as necessary for your stencil width
@@ -82,7 +83,7 @@ static void ghost_exchange_left_right(
     if (target < 0) {
         return;
     }
-
+    #pragma omp parallel for collapse(3) 
     for (usz i = x_start; i < x_start + STENCIL_ORDER; ++i) {
         for (usz j = 0; j < mesh->dim_y; ++j) {
             for (usz k = 0; k < mesh->dim_z; ++k) {
@@ -118,6 +119,7 @@ static void ghost_exchange_top_bottom(
         return;
     }
 
+    #pragma omp parallel for collapse(3)
     for (usz i = 0; i < mesh->dim_x; ++i) {
         for (usz j = y_start; j < y_start + STENCIL_ORDER; ++j) {
             for (usz k = 0; k < mesh->dim_z; ++k) {
@@ -153,6 +155,7 @@ static void ghost_exchange_front_back(
         return;
     }
 
+    #pragma omp parallel for collapse(3)
     for (usz i = 0; i < mesh->dim_x; ++i) {
         for (usz j = 0; j < mesh->dim_y; ++j) {
             for (usz k = z_start; k < z_start + STENCIL_ORDER; ++k) {
