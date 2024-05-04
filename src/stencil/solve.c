@@ -1,13 +1,8 @@
 #include "stencil/solve.h"
 #include <assert.h>
 #include <math.h>
-
 #include <omp.h>
 
-#include "stencil/solve.h"
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
 
 void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
     assert(A->dim_x == B->dim_x && B->dim_x == C->dim_x);
@@ -43,9 +38,8 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
                 (idx_core_const(A, i, j, k - o) * idx_core_const(B, i, j, k - o))
             ) / precomputed_powers[o];
         }
-        idx_core_const(C, i, j, k) = sum;
+        *idx_core(C, i, j, k) = sum;
     }
     // Copy results back from C to A to prepare for the next iteration
     mesh_copy_core(A, C);
 }
-
