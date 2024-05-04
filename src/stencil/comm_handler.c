@@ -6,7 +6,6 @@
 #include <omp.h>
 
 #define MAXLEN 8UL
-#define STENCIL_ORDER 2  // Adjust this as necessary for your stencil width
 
 static u32 gcd(u32 a, u32 b) {
     //u32 c;

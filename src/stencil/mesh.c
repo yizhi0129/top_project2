@@ -103,15 +103,17 @@ void mesh_copy_core(mesh_t* dst, mesh_t const* src) {
 /// Returns a pointer to the indexed element (includes surrounding ghost cells).
 f64* idx(mesh_t* self, usz i, usz j, usz k)
 {
-    f64 ind = idx_const(self, i, j, k);
-    return &ind;
+    usz index = i * self->dim_y * self->dim_z + j * self->dim_z + k;
+    return &(self->cells[index].value);
 }
 
 /// Returns a pointer to the indexed element (ignores surrounding ghost cells).
 f64* idx_core(mesh_t* self, usz i, usz j, usz k)
 {
-    f64 ind = idx_core_const(self, i, j, k);
-    return &ind;
+    usz index = (i - STENCIL_ORDER) * self->dim_y * self->dim_z 
+                + (j - STENCIL_ORDER) * self->dim_z 
+                + (k - STENCIL_ORDER);
+    return &(self->cells[index].value);
 }
 
 /// Returns the value at the indexed element (includes surrounding ghost cells).
