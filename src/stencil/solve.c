@@ -30,17 +30,17 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
         if (A->cells[ind].kind != CELL_KIND_CORE) {
             continue;
         }
-        
-        f64 sum = idx_core_const(A, i, j, k) * idx_core_const(B, i, j, k);
+
+        f64 sum = idx_const(A, i, j, k) * idx_const(B, i, j, k);
 
         for (usz o = 1; o <= STENCIL_ORDER; ++o) {
             sum += (
-                (idx_core_const(A, i + o, j, k) * idx_core_const(B, i + o, j, k)) +
-                (idx_core_const(A, i - o, j, k) * idx_core_const(B, i - o, j, k)) +
-                (idx_core_const(A, i, j + o, k) * idx_core_const(B, i, j + o, k)) +
-                (idx_core_const(A, i, j - o, k) * idx_core_const(B, i, j - o, k)) +
-                (idx_core_const(A, i, j, k + o) * idx_core_const(B, i, j, k + o)) +
-                (idx_core_const(A, i, j, k - o) * idx_core_const(B, i, j, k - o))
+                (idx_const(A, i + o, j, k) * idx_core_const(B, i + o, j, k)) +
+                (idx_const(A, i - o, j, k) * idx_core_const(B, i - o, j, k)) +
+                (idx_const(A, i, j + o, k) * idx_core_const(B, i, j + o, k)) +
+                (idx_const(A, i, j - o, k) * idx_core_const(B, i, j - o, k)) +
+                (idx_const(A, i, j, k + o) * idx_core_const(B, i, j, k + o)) +
+                (idx_const(A, i, j, k - o) * idx_core_const(B, i, j, k - o))
             ) / precomputed_powers[o];
         }
         *idx_core(C, i, j, k) = sum;
