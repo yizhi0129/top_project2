@@ -8,11 +8,11 @@
 #define MAXLEN 8UL
 
 static u32 gcd(u32 a, u32 b) {
-    //u32 c;
+    u32 c;
     while (b != 0) {
-        //c = a % b;
+        c = a % b;
         a = b;
-        //b = c;
+        b = c;
     }
     return a;
 }
