@@ -187,7 +187,7 @@ static void ghost_exchange_front_back(
                         MPI_Wait(&request, &status);
                         break;
                     case COMM_KIND_RECV_OP:
-                        MPI_Recv(
+                        MPI_Irecv(
                             idx(mesh, i, j, k),
                             1,
                             MPI_DOUBLE,
