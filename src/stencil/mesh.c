@@ -116,10 +116,6 @@ f64* idx(mesh_t* self, usz i, usz j, usz k)
 /// Returns a pointer to the indexed element (ignores surrounding ghost cells).
 f64* idx_core(mesh_t* self, usz i, usz j, usz k)
 {
-    assert(i >= STENCIL_ORDER && i < self->dim_x - STENCIL_ORDER);
-    assert(j >= STENCIL_ORDER && j < self->dim_y - STENCIL_ORDER);
-    assert(k >= STENCIL_ORDER && k < self->dim_z - STENCIL_ORDER);
-
     usz index = (i - STENCIL_ORDER) * self->dim_y * self->dim_z
                 + (j - STENCIL_ORDER) * self->dim_z
                 + (k - STENCIL_ORDER);
@@ -137,10 +133,6 @@ f64 idx_const(mesh_t const* self, usz i, usz j, usz k)
 /// Returns the value at the indexed element (ignores surrounding ghost cells).
 f64 idx_core_const(mesh_t const* self, usz i, usz j, usz k)
 {
-    assert(i >= STENCIL_ORDER && i < self->dim_x - STENCIL_ORDER);
-    assert(j >= STENCIL_ORDER && j < self->dim_y - STENCIL_ORDER);
-    assert(k >= STENCIL_ORDER && k < self->dim_z - STENCIL_ORDER);
-
     usz index = (i - STENCIL_ORDER) * self->dim_y * self->dim_z
                 + (j - STENCIL_ORDER) * self->dim_z
                 + (k - STENCIL_ORDER);
