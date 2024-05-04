@@ -120,10 +120,10 @@ i32 main(i32 argc, char* argv[argc + 1]) {
 
     init_meshes(&A, &B, &C, &comm_handler);
 
-    mesh_print(&A, "A");
-    mesh_print(&B, "B");
-    mesh_print(&C, "C");
-    
+    //mesh_print(&A, "A");
+    //mesh_print(&B, "B");
+    //mesh_print(&C, "C");
+
     // Exchange ghost cells to make sure data is properly initialized everywhere
     comm_handler_ghost_exchange(&comm_handler, &A);
     comm_handler_ghost_exchange(&comm_handler, &B);
@@ -152,6 +152,8 @@ i32 main(i32 argc, char* argv[argc + 1]) {
         comm_handler_ghost_exchange(&comm_handler, &C);
         chrono_stop(&chrono);
 
+        mesh_print(&C, "C");
+        
         duration_t elapsed = chrono_elapsed(chrono);
         save_results(ofp, &cfg, &A, &comm_handler, elapsed);
     }

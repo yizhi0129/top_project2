@@ -28,33 +28,50 @@ comm_handler_t comm_handler_new(u32 rank, u32 comm_size, usz dim_x, usz dim_y, u
     u32 const nb_x = (comm_size / nb_z) / nb_y;
 
     if (comm_size != nb_x * nb_y * nb_z) {
-        error("splitting does not match MPI communicator size\n -> expected %u, got %u", comm_size, nb_x * nb_y * nb_z);
+        error("splitting does not match MPI communicator size\n -> expected %u, got %u", 
+                comm_size, 
+                nb_x * nb_y * nb_z);
     }
 
+    // Compute current rank position
     u32 const rank_z = rank / (comm_size / nb_z);
     u32 const rank_y = (rank % (comm_size / nb_z)) / (comm_size / nb_y);
     u32 const rank_x = (rank % (comm_size / nb_z)) % (comm_size / nb_y);
 
+    // Setup size
     usz const loc_dim_z = (rank_z == nb_z - 1) ? dim_z / nb_z + dim_z % nb_z : dim_z / nb_z;
     usz const loc_dim_y = (rank_y == nb_y - 1) ? dim_y / nb_y + dim_y % nb_y : dim_y / nb_y;
     usz const loc_dim_x = (rank_x == nb_x - 1) ? dim_x / nb_x + dim_x % nb_x : dim_x / nb_x;
+
+    // Setup position
+    u32 const coord_z = rank_z * (u32)dim_z / nb_z;
+    u32 const coord_y = rank_y * (u32)dim_y / nb_y;
+    u32 const coord_x = rank_x * (u32)dim_x / nb_x;
+
+    // Compute neighbor nodes IDs
+    i32 const id_left = (rank_x > 0) ? (i32)rank - 1 : -1;
+    i32 const id_right = (rank_x < nb_x - 1) ? (i32)rank + 1 : -1;
+    i32 const id_top = (rank_y > 0) ? (i32)(rank - nb_x) : -1;
+    i32 const id_bottom = (rank_y < nb_y - 1) ? (i32)(rank + nb_x) : -1;
+    i32 const id_front = (rank_z > 0) ? (i32)(rank - (comm_size / nb_z)) : -1;
+    i32 const id_back = (rank_z < nb_z - 1) ? (i32)(rank + (comm_size / nb_z)) : -1;
 
     return (comm_handler_t){
         .nb_x = nb_x,
         .nb_y = nb_y,
         .nb_z = nb_z,
-        .coord_x = rank_x * (u32)dim_x / nb_x,
-        .coord_y = rank_y * (u32)dim_y / nb_y,
-        .coord_z = rank_z * (u32)dim_z / nb_z,
+        .coord_x = coord_x,
+        .coord_y = coord_y,
+        .coord_z = coord_z,
         .loc_dim_x = loc_dim_x,
         .loc_dim_y = loc_dim_y,
         .loc_dim_z = loc_dim_z,
-        .id_left = (rank_x > 0) ? rank - 1 : -1,
-        .id_right = (rank_x < nb_x - 1) ? rank + 1 : -1,
-        .id_top = (rank_y > 0) ? rank - nb_x : -1,
-        .id_bottom = (rank_y < nb_y - 1) ? rank + nb_x : -1,
-        .id_front = (rank_z > 0) ? rank - (comm_size / nb_z) : -1,
-        .id_back = (rank_z < nb_z - 1) ? rank + (comm_size / nb_z) : -1
+        .id_left = id_left,
+        .id_right = id_right,
+        .id_top = id_top,
+        .id_bottom = id_bottom,
+        .id_back = id_back,
+        .id_front = id_front,
     };
 }
 
@@ -106,13 +123,7 @@ static void ghost_exchange_left_right(
                         break;
                     case COMM_KIND_RECV_OP:
                         MPI_Irecv(
-                            idx(mesh, i, j, k),
-                            1,
-                            MPI_DOUBLE,
-                            target,
-                            0,
-                            MPI_COMM_WORLD,
-                            &request
+                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD, &request
                         );
                         MPI_Wait(&request, &status);
                         break;
@@ -147,13 +158,7 @@ static void ghost_exchange_top_bottom(
                         break;
                     case COMM_KIND_RECV_OP:
                         MPI_Irecv(
-                            idx(mesh, i, j, k),
-                            1,
-                            MPI_DOUBLE,
-                            target,
-                            0,
-                            MPI_COMM_WORLD,
-                            &request
+                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD, &request
                         );
                         MPI_Wait(&request, &status);
                         break;
@@ -188,13 +193,7 @@ static void ghost_exchange_front_back(
                         break;
                     case COMM_KIND_RECV_OP:
                         MPI_Irecv(
-                            idx(mesh, i, j, k),
-                            1,
-                            MPI_DOUBLE,
-                            target,
-                            0,
-                            MPI_COMM_WORLD,
-                            &request
+                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD, &request
                         );
                         MPI_Wait(&request, &status);
                         break;
