@@ -64,8 +64,16 @@ void comm_handler_print(comm_handler_t const* self) {
     static char bt[MAXLEN], bb[MAXLEN], bl[MAXLEN], br[MAXLEN], bf[MAXLEN], bd[MAXLEN];
 
     fprintf(stderr, "****************************************\nRANK %d:\n", rank);
-    fprintf(stderr, "COORDS: %u,%u,%u\nLOCAL DIMS: %zu,%zu,%zu\n", self->coord_x, self->coord_y, self->coord_z, self->loc_dim_x, self->loc_dim_y, self->loc_dim_z);
-    fprintf(stderr, "%2s %2s\n%2s * %2s\n%2s %2s\n", self->id_top < 0 ? "-" : stringify(bt, self->id_top), self->id_back < 0 ? "-" : stringify(bb, self->id_back), self->id_left < 0 ? "-" : stringify(bl, self->id_left), self->id_right < 0 ? "-" : stringify(br, self->id_right), self->id_front < 0 ? "-" : stringify(bf, self->id_front), self->id_bottom < 0 ? "-" : stringify(bd, self->id_bottom));
+    fprintf(stderr, "COORDS: %u,%u,%u\nLOCAL DIMS: %zu,%zu,%zu\n", 
+                self->coord_x, self->coord_y, self->coord_z, 
+                self->loc_dim_x, self->loc_dim_y, self->loc_dim_z);
+    fprintf(stderr, "%2s %2s\n%2s * %2s\n%2s %2s\n", 
+                self->id_top < 0 ? "-" : stringify(bt, self->id_top), 
+                self->id_back < 0 ? "-" : stringify(bb, self->id_back), 
+                self->id_left < 0 ? "-" : stringify(bl, self->id_left), 
+                self->id_right < 0 ? "-" : stringify(br, self->id_right), 
+                self->id_front < 0 ? "-" : stringify(bf, self->id_front), 
+                self->id_bottom < 0 ? "-" : stringify(bd, self->id_bottom));
 }
 
 
@@ -82,26 +90,31 @@ static void ghost_exchange_left_right(
     if (target < 0) {
         return;
     }
+    MPI_Request request;
+    MPI_Status status;
+
     #pragma omp parallel for collapse(3) 
     for (usz i = x_start; i < x_start + STENCIL_ORDER; ++i) {
         for (usz j = 0; j < mesh->dim_y; ++j) {
             for (usz k = 0; k < mesh->dim_z; ++k) {
                 switch (comm_kind) {
                     case COMM_KIND_SEND_OP:
-                        MPI_Send(
-                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD
+                        MPI_Isend(
+                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD, &request
                         );
+                        MPI_Wait(&request, &status);
                         break;
                     case COMM_KIND_RECV_OP:
-                        MPI_Recv(
+                        MPI_Irecv(
                             idx(mesh, i, j, k),
                             1,
                             MPI_DOUBLE,
                             target,
                             0,
                             MPI_COMM_WORLD,
-                            MPI_STATUS_IGNORE
+                            &request
                         );
+                        MPI_Wait(&request, &status);
                         break;
                     default:
                         __builtin_unreachable();
@@ -118,26 +131,31 @@ static void ghost_exchange_top_bottom(
         return;
     }
 
+    MPI_Request request;
+    MPI_Status status;
+
     #pragma omp parallel for collapse(3)
     for (usz i = 0; i < mesh->dim_x; ++i) {
         for (usz j = y_start; j < y_start + STENCIL_ORDER; ++j) {
             for (usz k = 0; k < mesh->dim_z; ++k) {
                 switch (comm_kind) {
                     case COMM_KIND_SEND_OP:
-                        MPI_Send(
-                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD
+                        MPI_Isend(
+                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD, &request
                         );
+                        MPI_Wait(&request, &status);
                         break;
                     case COMM_KIND_RECV_OP:
-                        MPI_Recv(
+                        MPI_Irecv(
                             idx(mesh, i, j, k),
                             1,
                             MPI_DOUBLE,
                             target,
                             0,
                             MPI_COMM_WORLD,
-                            MPI_STATUS_IGNORE
+                            &request
                         );
+                        MPI_Wait(&request, &status);
                         break;
                     default:
                         __builtin_unreachable();
@@ -154,15 +172,19 @@ static void ghost_exchange_front_back(
         return;
     }
 
+    MPI_Request request;
+    MPI_Status status;
+
     #pragma omp parallel for collapse(3)
     for (usz i = 0; i < mesh->dim_x; ++i) {
         for (usz j = 0; j < mesh->dim_y; ++j) {
             for (usz k = z_start; k < z_start + STENCIL_ORDER; ++k) {
                 switch (comm_kind) {
                     case COMM_KIND_SEND_OP:
-                        MPI_Send(
-                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD
+                        MPI_Isend(
+                            idx(mesh, i, j, k), 1, MPI_DOUBLE, target, 0, MPI_COMM_WORLD, &request
                         );
+                        MPI_Wait(&request, &status);
                         break;
                     case COMM_KIND_RECV_OP:
                         MPI_Recv(
@@ -172,8 +194,9 @@ static void ghost_exchange_front_back(
                             target,
                             0,
                             MPI_COMM_WORLD,
-                            MPI_STATUS_IGNORE
+                            &request
                         );
+                        MPI_Wait(&request, &status);
                         break;
                     default:
                         __builtin_unreachable();
@@ -210,5 +233,5 @@ void comm_handler_ghost_exchange(comm_handler_t const* self, mesh_t* mesh) {
     ghost_exchange_front_back(self, mesh, COMM_KIND_RECV_OP, self->id_back, mesh->dim_z - STENCIL_ORDER);
 
     // Need to synchronize all remaining in-flight communications before exiting
-    MPI_Syncall(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 }
