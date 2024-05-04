@@ -100,6 +100,10 @@ void mesh_copy_core(mesh_t* dst, mesh_t const* src) {
         {
             f64 value = idx_core_const(src, dst_i, dst_j, dst_k);
             *idx_core(dst, dst_i, dst_j, dst_k) = value;
+        }
+        else
+        {
+            continue;
         }        
     }
 }
@@ -116,11 +120,17 @@ f64* idx(mesh_t* self, usz i, usz j, usz k)
 /// Returns a pointer to the indexed element (ignores surrounding ghost cells).
 f64* idx_core(mesh_t* self, usz i, usz j, usz k)
 {
-    usz index = (i - STENCIL_ORDER) * self->dim_y * self->dim_z
-                + (j - STENCIL_ORDER) * self->dim_z
-                + (k - STENCIL_ORDER);
-    assert(index < self->dim_x * self->dim_y * self->dim_z);  
-    return &(self->cells[index].value);
+    if (i >= STENCIL_ORDER && i < self->dim_x - STENCIL_ORDER &&
+        j >= STENCIL_ORDER && j < self->dim_y - STENCIL_ORDER &&
+        k >= STENCIL_ORDER && k < self->dim_z - STENCIL_ORDER)
+    {
+        usz index = i * self->dim_y * self->dim_z + j * self->dim_z + k;
+        return &(self->cells[index].value);
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 /// Returns the value at the indexed element (includes surrounding ghost cells).
@@ -133,10 +143,16 @@ f64 idx_const(mesh_t const* self, usz i, usz j, usz k)
 /// Returns the value at the indexed element (ignores surrounding ghost cells).
 f64 idx_core_const(mesh_t const* self, usz i, usz j, usz k)
 {
-    usz index = (i - STENCIL_ORDER) * self->dim_y * self->dim_z
-                + (j - STENCIL_ORDER) * self->dim_z
-                + (k - STENCIL_ORDER);
-    assert(index < self->dim_x * self->dim_y * self->dim_z);   
-    return self->cells[index].value;
+    if (i >= STENCIL_ORDER && i < self->dim_x - STENCIL_ORDER &&
+        j >= STENCIL_ORDER && j < self->dim_y - STENCIL_ORDER &&
+        k >= STENCIL_ORDER && k < self->dim_z - STENCIL_ORDER)
+    {
+        usz index = i * self->dim_y * self->dim_z + j * self->dim_z + k;
+        return self->cells[index].value;
+    }
+    else
+    {
+        return 0.0;
+    }
 }
 
