@@ -7,23 +7,24 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
     assert(A->dim_y == B->dim_y && B->dim_y == C->dim_y);
     assert(A->dim_z == B->dim_z && B->dim_z == C->dim_z);
 
-    for (usz k = STENCIL_ORDER; k < C->dim_z - STENCIL_ORDER; ++k) {
-        for (usz j = STENCIL_ORDER; j < C->dim_y - STENCIL_ORDER; ++j) {
-            for (usz i = STENCIL_ORDER; i < C->dim_x - STENCIL_ORDER; ++i) {
-                *idx_core(C, i, j, k) = *idx_core(A, i, j, k) * idx_core_const(B, i, j, k);
+    usz ghost_size = 2 * STENCIL_ORDER;
+    usz cell_count = (A->dim_x - ghost_size) * (A->dim_y - ghost_size) * (A->dim_z - ghost_size);
+    for (usz ind = 0; ind < cell_count; ++ind) {
+        usz i = (ind / ((A->dim_y - ghost_size) * (A->dim_z - ghost_size))) + STENCIL_ORDER;
+        usz j = ((ind / (A->dim_z - ghost_size)) % (A->dim_y - ghost_size)) + STENCIL_ORDER;
+        usz k = (ind % (A->dim_z - ghost_size)) + STENCIL_ORDER;
+        *idx_core(C, i, j, k) = *idx_core(A, i, j, k) * idx_core_const(B, i, j, k);
 
-                // Apply stencil operation using values from A and B
-                for (usz o = 1; o <= STENCIL_ORDER; ++o) {
-                    *idx_core(C, i, j, k) += (
+        // Apply stencil operation using values from A and B
+        for (usz o = 1; o <= STENCIL_ORDER; ++o) {
+            *idx_core(C, i, j, k) += (
                         (*idx_core(A, i + o, j, k) * idx_core_const(B, i + o, j, k)) +
                         (*idx_core(A, i - o, j, k) * idx_core_const(B, i - o, j, k)) +
                         (*idx_core(A, i, j + o, k) * idx_core_const(B, i, j + o, k)) +
                         (*idx_core(A, i, j - o, k) * idx_core_const(B, i, j - o, k)) +
                         (*idx_core(A, i, j, k + o) * idx_core_const(B, i, j, k + o)) +
                         (*idx_core(A, i, j, k - o) * idx_core_const(B, i, j, k - o))
-                    ) / pow(17.0, (f64)o);
-                }
-            }
+                    ) / pow(17.0, (f64)o);    
         }
     }
 }

@@ -26,12 +26,6 @@ typedef struct comm_handler_s {
     u32 coord_y;
     /// Y coordinate of local mesh inside the global one.
     u32 coord_z;
-    /// X dimension of the local mesh.
-    usz loc_dim_x;
-    /// Y dimension of the local mesh.
-    usz loc_dim_y;
-    /// Z dimension of the local mesh.
-    usz loc_dim_z;
     /// Rank of the left neighboor process, -1 if none.
     i32 id_left;
     /// Rank of the right neighboor process, -1 if none.
@@ -44,6 +38,12 @@ typedef struct comm_handler_s {
     i32 id_back;
     /// Rank of the front neighboor process, -1 if none.
     i32 id_front;
+    /// X dimension of the local mesh.    
+    usz loc_dim_x;
+    /// Y dimension of the local mesh.
+    usz loc_dim_y;
+    /// Z dimension of the local mesh.
+    usz loc_dim_z;    
 } comm_handler_t;
 
 comm_handler_t comm_handler_new(u32 rank, u32 comm_size, usz dim_x, usz dim_y, usz dim_z);

@@ -53,7 +53,7 @@ void mesh_print(mesh_t const* self, char const* name) {
     for (usz index = 0; index < (self->dim_x - ghost_size) * (self->dim_y - ghost_size) * (self->dim_z - ghost_size); ++index) {
         usz i = (index / ((self->dim_y - ghost_size) * (self->dim_z - ghost_size))) + STENCIL_ORDER;
         usz j = ((index / (self->dim_z - ghost_size)) % (self->dim_y - ghost_size)) + STENCIL_ORDER;
-        usz k = (index % (self->dim_z - ghost_size)) + ghost_size;
+        usz k = (index % (self->dim_z - ghost_size)) + STENCIL_ORDER;
 
         printf(
             "%s%6.3lf%s ",
@@ -62,7 +62,7 @@ void mesh_print(mesh_t const* self, char const* name) {
             "\x1b[0m"
         );
 
-        if ((index + 1) % (self->dim_z - 2 * ghost_size) == 0) {
+        if ((index + 1) % (self->dim_z - ghost_size) == 0) {
             puts("");
         }
     }
@@ -91,7 +91,7 @@ void mesh_copy_core(mesh_t* dst, mesh_t const* src) {
     for (usz index = 0; index < cell_count; ++index) {
         usz dst_i = (index / ((dst->dim_y - ghost_size) * (dst->dim_z - ghost_size))) + STENCIL_ORDER;
         usz dst_j = ((index / (dst->dim_z - ghost_size)) % (dst->dim_y - ghost_size)) + STENCIL_ORDER;
-        usz dst_k = (index % (dst->dim_z - ghost_size)) + ghost_size;
+        usz dst_k = (index % (dst->dim_z - ghost_size)) + STENCIL_ORDER;
 
         f64 value = idx_core_const(src, dst_i, dst_j, dst_k);
         *idx_core(dst, dst_i, dst_j, dst_k) = value;

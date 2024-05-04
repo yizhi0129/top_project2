@@ -204,7 +204,7 @@ void comm_handler_ghost_exchange(comm_handler_t const* self, mesh_t* mesh) {
     ghost_exchange_front_back(self, mesh, COMM_KIND_SEND_OP, self->id_back, mesh->dim_z - 2 * STENCIL_ORDER);
     ghost_exchange_front_back(self, mesh, COMM_KIND_RECV_OP, self->id_front, 0);
     // Back to front phase
-    ghost_exchange_front_back(self, mesh, COMM_KIND_SEND_OP, self’s->id_front, STENCIL_ORDER);
+    ghost_exchange_front_back(self, mesh, COMM_KIND_SEND_OP, self->id_front, STENCIL_ORDER);
     ghost_exchange_front_back(self, mesh, COMM_KIND_RECV_OP, self->id_back, mesh->dim_z - STENCIL_ORDER);
 
     // Need to synchronize all remaining in-flight communications before exiting
