@@ -110,15 +110,20 @@ i32 main(i32 argc, char* argv[argc + 1]) {
 
     mesh_t A = mesh_new(
         comm_handler.loc_dim_x, comm_handler.loc_dim_y, comm_handler.loc_dim_z, MESH_KIND_INPUT
-    );
+    );   
     mesh_t B = mesh_new(
         comm_handler.loc_dim_x, comm_handler.loc_dim_y, comm_handler.loc_dim_z, MESH_KIND_CONSTANT
-    );
+    );  
     mesh_t C = mesh_new(
         comm_handler.loc_dim_x, comm_handler.loc_dim_y, comm_handler.loc_dim_z, MESH_KIND_OUTPUT
-    );
+    );  
+
     init_meshes(&A, &B, &C, &comm_handler);
 
+    mesh_print(&A, "A");
+    mesh_print(&B, "B");
+    mesh_print(&C, "C");
+    
     // Exchange ghost cells to make sure data is properly initialized everywhere
     comm_handler_ghost_exchange(&comm_handler, &A);
     comm_handler_ghost_exchange(&comm_handler, &B);

@@ -19,7 +19,7 @@ mesh_t mesh_new(usz dim_x, usz dim_y, usz dim_z, mesh_kind_t kind) {
         .cells = cells,
         .kind = kind,
     };
-}
+} // return dimenstion including ghost cells
 
 void mesh_drop(mesh_t* self) {
     if (NULL != self->cells) {
@@ -50,7 +50,8 @@ void mesh_print(mesh_t const* self, char const* name) {
     );
 
     usz ghost_size = 2 * STENCIL_ORDER;
-    for (usz index = 0; index < (self->dim_x - ghost_size) * (self->dim_y - ghost_size) * (self->dim_z - ghost_size); ++index) {
+    usz cell_count = self->dim_x * self->dim_y * self->dim_z;
+    for (usz index = 0; index < cell_count; ++index) {
         usz i = (index / ((self->dim_y - ghost_size) * (self->dim_z - ghost_size))) + STENCIL_ORDER;
         usz j = ((index / (self->dim_z - ghost_size)) % (self->dim_y - ghost_size)) + STENCIL_ORDER;
         usz k = (index % (self->dim_z - ghost_size)) + STENCIL_ORDER;
@@ -58,7 +59,7 @@ void mesh_print(mesh_t const* self, char const* name) {
         printf(
             "%s%6.3lf%s ",
             CELL_KIND_CORE == mesh_set_cell_kind(self, i, j, k) ? "\x1b[1m" : "",
-            idx_const(self, i, j, k),
+            idx_core_const(self, i, j, k),
             "\x1b[0m"
         );
 
