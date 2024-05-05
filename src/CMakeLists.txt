@@ -40,16 +40,16 @@ if(OPENMP_FOUND AND MPI_FOUND)
     # Add AVX compiler flags
     if(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         # For GCC/G++
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Ofast -mavx")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mavx")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -mavx")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx")
     elseif(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # For Clang/Clang++
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Ofast -mavx")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mavx")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -mavx")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx")
     elseif(MSVC)
         # MSVC doesn't use the same flag, but AVX support is enabled by default
     endif()
-    target_compile_options(stencil PRIVATE ${OpenMP_C_FLAGS} -Ofast -mavx -fopenmp)
-    target_compile_options(utils PRIVATE ${OpenMP_C_FLAGS} -Ofast)
-    target_compile_options(my_executable PRIVATE ${OpenMP_C_FLAGS} -Ofast)
+    target_compile_options(stencil PRIVATE ${OpenMP_C_FLAGS} -O3 -mavx -fopenmp)
+    target_compile_options(utils PRIVATE ${OpenMP_C_FLAGS} -O3)
+    target_compile_options(my_executable PRIVATE ${OpenMP_C_FLAGS} -O3)
 endif()
