@@ -4,6 +4,7 @@
 #include <omp.h>
 
 #define BLOCK_SIZE 32  
+//#define BLOCK_SIZE 64
 
 void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
     assert(A->dim_x == B->dim_x && B->dim_x == C->dim_x);
