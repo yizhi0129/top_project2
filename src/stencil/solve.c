@@ -9,6 +9,11 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
     assert(A->dim_y == B->dim_y && B->dim_y == C->dim_y);
     assert(A->dim_z == B->dim_z && B->dim_z == C->dim_z);
 
+    //omp_set_num_threads(1);
+    //omp_set_num_threads(2);
+    //omp_set_num_threads(4);
+    //omp_set_num_threads(8);
+    //omp_set_num_threads(16);
     omp_set_num_threads(24);
 
     f64 precomputed_powers[STENCIL_ORDER + 1];
@@ -18,14 +23,13 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
         precomputed_powers[i] = pow(17.0, (f64)i);
     }
 
-    usz ghost_size = 2 * STENCIL_ORDER;
     usz cell_count = A->dim_x * A->dim_y * A->dim_z;
     
     #pragma omp parallel for
     for (usz ind = 0; ind < cell_count; ++ind) {
-        usz i = (ind / ((A->dim_y - ghost_size) * (A->dim_z - ghost_size))) + STENCIL_ORDER;
-        usz j = ((ind / (A->dim_z - ghost_size)) % (A->dim_y - ghost_size)) + STENCIL_ORDER;
-        usz k = (ind % (A->dim_z - ghost_size)) + STENCIL_ORDER;
+        usz i = ind / (A->dim_y * A->dim_z);
+        usz j = (ind / A->dim_z) % A->dim_y;
+        usz k = ind % A->dim_z;
 
         if (A->cells[ind].kind != CELL_KIND_CORE) {
             continue;
@@ -35,15 +39,15 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
 
         for (usz o = 1; o <= STENCIL_ORDER; ++o) {
             sum += (
-                (idx_const(A, i + o, j, k) * idx_core_const(B, i + o, j, k)) +
-                (idx_const(A, i - o, j, k) * idx_core_const(B, i - o, j, k)) +
-                (idx_const(A, i, j + o, k) * idx_core_const(B, i, j + o, k)) +
-                (idx_const(A, i, j - o, k) * idx_core_const(B, i, j - o, k)) +
-                (idx_const(A, i, j, k + o) * idx_core_const(B, i, j, k + o)) +
-                (idx_const(A, i, j, k - o) * idx_core_const(B, i, j, k - o))
+                (idx_const(A, i + o, j, k) * idx_const(B, i + o, j, k)) +
+                (idx_const(A, i - o, j, k) * idx_const(B, i - o, j, k)) +
+                (idx_const(A, i, j + o, k) * idx_const(B, i, j + o, k)) +
+                (idx_const(A, i, j - o, k) * idx_const(B, i, j - o, k)) +
+                (idx_const(A, i, j, k + o) * idx_const(B, i, j, k + o)) +
+                (idx_const(A, i, j, k - o) * idx_const(B, i, j, k - o))
             ) / precomputed_powers[o];
         }
-        *idx_core(C, i, j, k) = sum;
+        *idx(C, i, j, k) = sum;
     }
     // Copy results back from C to A to prepare for the next iteration
     mesh_copy_core(A, C);

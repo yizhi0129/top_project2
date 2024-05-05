@@ -14,20 +14,20 @@ static f64 compute_core_pressure(usz i, usz j, usz k) {
 
 //single loop: may be more efficient but more indices to compute
 static void setup_mesh_cell_values(mesh_t* mesh, comm_handler_t const* comm_handler) {
-    usz ghost_size = 2 * STENCIL_ORDER;
+    usz count = mesh->dim_x * mesh->dim_y * mesh->dim_z;
     #pragma omp parallel for
-    for (usz index = 0; index < (mesh->dim_x - ghost_size) * (mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size); ++index) {
-        usz i = (index / ((mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size))) + STENCIL_ORDER;
-        usz j = ((index / (mesh->dim_z - ghost_size)) % (mesh->dim_y - ghost_size)) + STENCIL_ORDER;
-        usz k = (index % (mesh->dim_z - ghost_size)) + STENCIL_ORDER;
+    for (usz index = 0; index < count; ++index) {
+        usz i = index / (mesh->dim_y * mesh->dim_z);
+        usz j = (index / mesh->dim_z) % mesh->dim_y;
+        usz k = index % mesh->dim_z;
 
         usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
         switch (mesh->kind) {
             case MESH_KIND_CONSTANT:
                 mesh->cells[ind].value = compute_core_pressure(
-                    comm_handler->coord_x + i - STENCIL_ORDER,
-                    comm_handler->coord_y + j - STENCIL_ORDER,
-                    comm_handler->coord_z + k - STENCIL_ORDER
+                    comm_handler->coord_x + i,
+                    comm_handler->coord_y + j,
+                    comm_handler->coord_z + k
                 );
                 break;
             case MESH_KIND_INPUT:
@@ -50,12 +50,12 @@ static void setup_mesh_cell_values(mesh_t* mesh, comm_handler_t const* comm_hand
 }
 
 static void setup_mesh_cell_kinds(mesh_t* mesh) {
-    usz ghost_size = 2 * STENCIL_ORDER;
+    usz count = mesh->dim_x * mesh->dim_y * mesh->dim_z;
     #pragma omp parallel for
-    for (usz index = 0; index < (mesh->dim_x - ghost_size) * (mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size); ++index) {
-        usz i = (index / ((mesh->dim_y - ghost_size) * (mesh->dim_z - ghost_size))) + STENCIL_ORDER;
-        usz j = ((index / (mesh->dim_z - ghost_size)) % (mesh->dim_y - ghost_size)) + STENCIL_ORDER;
-        usz k = (index % (mesh->dim_z - ghost_size)) + STENCIL_ORDER;
+    for (usz index = 0; index < count; ++index) {
+        usz i = index / (mesh->dim_y * mesh->dim_z);
+        usz j = (index / mesh->dim_z) % mesh->dim_y;
+        usz k = index % mesh->dim_z;
 
         usz ind = i * mesh->dim_y * mesh->dim_z + j * mesh->dim_z + k;
         mesh->cells[ind].kind = mesh_set_cell_kind(mesh, i, j, k);
