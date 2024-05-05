@@ -19,8 +19,8 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
     //omp_set_num_threads(4);  
     //omp_set_num_threads(8);  
     //omp_set_num_threads(16);  
-    omp_set_num_threads(24);  
-    //omp_set_num_threads(48);  
+    //omp_set_num_threads(24);  
+    omp_set_num_threads(48);  
 
     f64 precomputed_powers[STENCIL_ORDER + 1];
     #pragma omp parallel for
