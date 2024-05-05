@@ -152,7 +152,7 @@ i32 main(i32 argc, char* argv[argc + 1]) {
         comm_handler_ghost_exchange(&comm_handler, &C);
         chrono_stop(&chrono);
 
-        mesh_print(&C, "C");
+        //mesh_print(&C, "C");
         
         duration_t elapsed = chrono_elapsed(chrono);
         save_results(ofp, &cfg, &A, &comm_handler, elapsed);
