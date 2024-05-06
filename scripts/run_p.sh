@@ -7,7 +7,7 @@ cd ../src
 cmake .
 make
 
-j=1
+j=48
 perf record ./my_executable ../config.txt ../results/res_100_o_$j.txt
 perf report > ../speed_up/perf_100_o_$j.txt
 
