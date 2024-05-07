@@ -4,11 +4,14 @@
 #include <omp.h>
 
 //#define BLOCK_SIZE 32  
-#define BLOCK_SIZE 40 
+//#define BLOCK_SIZE 40 
 //#define BLOCK_SIZE 48 
 //#define BLOCK_SIZE 56 
 //#define BLOCK_SIZE 64
 
+#define BLOCK_SIZE_I 32
+#define BLOCK_SIZE_J 256
+#define BLOCK_SIZE_K 4
 
 void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
     assert(A->dim_x == B->dim_x && B->dim_x == C->dim_x);
@@ -32,15 +35,15 @@ void solve_jacobi(mesh_t* A, const mesh_t* B, mesh_t* C) {
     usz cell_count = A->dim_x * A->dim_y * A->dim_z;
 
     #pragma omp parallel for collapse(3) schedule(dynamic)
-    for (usz bi = 0; bi < A->dim_x; bi += BLOCK_SIZE) {
-        for (usz bj = 0; bj < A->dim_y; bj += BLOCK_SIZE) {
-            for (usz bk = 0; bk < A->dim_z; bk += BLOCK_SIZE) {
-                for (usz i = bi; i < bi + BLOCK_SIZE && i < A->dim_x; i++) {
-                    for (usz j = bj; j < bj + BLOCK_SIZE && j < A->dim_y; j++) {
-                        for (usz k = bk; k < bk + BLOCK_SIZE && k < A->dim_z; k++) {
-                            /*if (A->cells[i * A->dim_y * A->dim_z + j * A->dim_z + k].kind != CELL_KIND_CORE) {
+    for (usz bi = 0; bi < A->dim_x; bi += BLOCK_SIZE_I) {
+        for (usz bj = 0; bj < A->dim_y; bj += BLOCK_SIZE_J) {
+            for (usz bk = 0; bk < A->dim_z; bk += BLOCK_SIZE_K) {
+                for (usz i = bi; i < bi + BLOCK_SIZE_I && i < A->dim_x; i++) {
+                    for (usz j = bj; j < bj + BLOCK_SIZE_J && j < A->dim_y; j++) {
+                        for (usz k = bk; k < bk + BLOCK_SIZE_K && k < A->dim_z; k++) {
+                            if (A->cells[i * A->dim_y * A->dim_z + j * A->dim_z + k].kind != CELL_KIND_CORE) {
                                 continue;
-                            }*/
+                            }
                             f64 sum = idx_const(A, i, j, k) * idx_const(B, i, j, k);
                             for (usz o = 1; o <= STENCIL_ORDER; ++o) {
                                 sum += (
